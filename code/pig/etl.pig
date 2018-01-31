@@ -81,9 +81,12 @@ STORE featureswithid INTO 'features_aggregate' USING PigStorage(',');
 -- ***************************************************************************
 -- Generate feature mapping
 -- ***************************************************************************
-all_features = GROUP featureswithid BY eventid;
-all_features = FOREACH all_features GENERATE group.eventid as eventid, COUNT(patientid) as count;
-all_features = RANK all_features BY count ASC;
+-- all_features = GROUP featureswithid BY eventid;
+-- all_features = FOREACH all_features GENERATE group.eventid as eventid, COUNT(patientid) as count;
+-- all_features = RANK all_features BY count ASC;
+-- all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, eventid;
+all_features = DISTINCT(FOREACH featureswithid GENERATE eventid);
+all_features = RANK all_features BY eventid ASC;
 all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, eventid;
  -- compute the set of distinct eventids obtained from previous step, sort them by eventid and then rank these features by eventid to create (idx, eventid). Rank should start from 0.
 
