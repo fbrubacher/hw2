@@ -1,0 +1,118 @@
+\documentclass[12pt]{article}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{amsmath, amsthm}
+\RequirePackage[colorlinks]{hyperref}
+\usepackage[lined,boxed,linesnumbered,commentsnumbered]{algorithm2e}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue}
+}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+% Commands
+\newenvironment{solution}
+  {\begin{proof}[Solution]}
+  {\end{proof}}
+
+\newcommand{\snehaedit}[1]{\textcolor{green}{\emph{[Sneha: #1]}}}
+\newcommand{\hsedit}[1]{\textcolor{magenta}{\emph{[Hang: #1]}}}
+\newcommand{\meeraedit}[1]{\textcolor{red}{\emph{[Meera: #1]}}}
+\newcommand{\prpedit}[1]{\textcolor{blue}{\emph{[Prp: #1]}}}
+
+
+\title{CSE6250: Big Data Analytics in Healthcare \\ Homework 2}
+\author{Jimeng Sun}
+\date{Deadline: February 4, 2018, 11:55 PM AoE}
+
+\begin{document}
+
+\begin{center}
+$NLL\left (D, \mathbf{w} \right ) = -\sum_{i=1}^{N} \left [ \left ( 1 - y_i \right ) \log(1-\sigma(\mathbf{w}^T\mathbf{x}_i)) + y_i\log \sigma(\mathbf{w}^T\mathbf{x}_i)  \right ]$ \end{center}
+
+\begin{equation}
+\frac{\partial y_i\log \sigma(\mathbf{w}^T\mathbf{x}_i)}{\partial w} = x\sigma(1-\sigma(\mathbf{w}^T\mathbf{x}_i)(\sigma(\mathbf{w}^T\mathbf{x}_i))
+ \end{equation}
+
+It's analogous for the other part of the equation. When we combine them together :
+
+\begin{equation}
+= (y_i(1 - \sigma(\mathbf{w}^T\mathbf{x}_i)) - (1 - y)(\sigma(\mathbf{w}^T\mathbf{x}_i)))x_i
+ \end{equation}
+
+We define :
+\begin{equation}
+h_\sigma = \frac{1}{1 + e^(-w^Tx)}
+\end{equation}
+ 
+Then:
+\begin{equation}
+\frac{\partial NLL}{\partial w} = (y_i - h_\sigma)x_i
+\end{equation}
+
+1.2.a
+\begin{center}
+
+$NLL\left (D, \mathbf{w} \right ) = - \left [ \left ( 1 - y_t \right ) \log(1-\sigma(\mathbf{w}^T\mathbf{x}_t)) + y_t\log \sigma(\mathbf{w}^T\mathbf{x}_t)  \right ]$ \end{center}
+
+1.2.b
+
+1.2.c
+
+1.2.e
+
+
+\begin{center}
+$w_t = w_t - \eta((y_t - \sigma(\mathbf{w}^T\mathbf{x_t}))x_t - \mu \|\mathbf{w}\|^2) $
+\end{center}
+
+	
+
+
+\begin{table}[th]
+\centering
+\begin{tabular}{@{}l|l|l}
+\toprule
+Metric & Deceased patients & Alive patients  \\ \hline
+Event Count &  &  \\ 
+1. Average Event Count & 683.15 & 769.54 \\
+2. Max Event Count  & 12627 & 16829\\
+3. Min Event Count  & 1 	& 1\\ \hline
+
+Encounter Count & &  \\ 
+1. Average Encounter Count  &&\\
+2. Max Encounter Count  &&\\
+3. Min Encounter Count  &&\\ \hline
+
+Record Length & &  \\ 
+1. Average Record Length &&\\
+2. Median Record Length &&\\
+3. Max Record Length&& \\
+4. Min Record Length&& \\ \hline
+
+Common Diagnosis & &  \\ \hline
+
+Common Laboratory Test & &  \\ \hline
+
+Common Medication & &  \\ 
+\bottomrule
+\end{tabular}
+\caption{Descriptive statistics for alive and dead patients\label{tbl:stat}}
+\end{table} 
+
+\end{document}
