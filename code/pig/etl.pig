@@ -59,10 +59,15 @@ STORE deadevents INTO 'deadevents' USING PigStorage(',');
 -- ***************************************************************************
 -- Filter events within the observation window and remove events with missing values
 -- ***************************************************************************
-combined = UNION aliveevents, deadevents; 
-filtered = FILTER combined BY value IS NOT null;
-filtered = FILTER filtered BY time_difference <= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
-filtered = FILTER combined BY time_difference >= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
+-- combined = UNION aliveevents, deadevents; 
+-- filtered = FILTER combined BY value IS NOT null;
+-- filtered = FILTER filtered BY time_difference <= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
+-- filtered = FILTER combined BY time_difference >= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
+
+filtered = UNION aliveevents, deadevents;
+filtered = FILTER filtered BY value IS NOT null;
+filtered = FILTER filtered BY time_difference <= 2000; 
+filtered = FILTER filtered BY time_difference >= 0;
 
 --TEST-2
 filteredgrpd = GROUP filtered BY 1;
@@ -97,25 +102,25 @@ all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, event
 -- store the features as an output file
 STORE all_features INTO 'features' using PigStorage(' ');
 
--- features = JOIN featureswithid BY eventid, all_features BY eventid;
+features = JOIN featureswithid BY eventid, all_features BY eventid;
 
--- --TEST-4
--- features = ORDER features BY patientid, idx;
--- features = FOREACH features GENERATE patientid, idx, featurevalue;
--- features = ORDER features BY patientid, idx;
+--TEST-4
+features = ORDER features BY patientid, idx;
+features = FOREACH features GENERATE patientid, idx, featurevalue;
+features = ORDER features BY patientid, idx;
 
--- STORE features INTO 'features_map' USING PigStorage(',');
+STORE features INTO 'features_map' USING PigStorage(',');
 
--- -- ***************************************************************************
--- -- Normalize the values using min-max normalization
--- -- Use DOUBLE precision
--- -- ***************************************************************************
--- maxvalues = GROUP features BY idx;
--- maxvalues = FOREACH maxvalues GENERATE group as idx, MAX(features.featurevalue) AS maxvalues;
+-- ***************************************************************************
+-- Normalize the values using min-max normalization
+-- Use DOUBLE precision
+-- ***************************************************************************
+maxvalues = GROUP features BY idx;
+maxvalues = FOREACH maxvalues GENERATE group as idx, MAX(features.featurevalue) AS maxvalues;
 
--- normalized = JOIN features BY idx, maxvalues BY idx;
+normalized = JOIN features BY idx, maxvalues BY idx;
 
--- features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((DOUBLE)featurevalue/(DOUBLE)maxvalues) as normalizedfeaturevalue;
+features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((DOUBLE)featurevalue/(DOUBLE)maxvalues) as normalizedfeaturevalue;
 
 -- --TEST-5
 -- features = ORDER features BY patientid, idx;
