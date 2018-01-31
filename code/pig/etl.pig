@@ -122,53 +122,53 @@ normalized = JOIN features BY idx, maxvalues BY idx;
 
 features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((DOUBLE)featurevalue/(DOUBLE)maxvalues) as normalizedfeaturevalue;
 
--- --TEST-5
--- features = ORDER features BY patientid, idx;
--- STORE features INTO 'features_normalized' USING PigStorage(',');
+--TEST-5
+features = ORDER features BY patientid, idx;
+STORE features INTO 'features_normalized' USING PigStorage(',');
 
--- -- ***************************************************************************
--- -- Generate features in svmlight format
--- -- features is of the form (patientid, idx, normalizedfeaturevalue) and is the output of the previous step
--- -- e.g.  1,1,1.0
--- --  	 1,3,0.8
--- --	     2,1,0.5
--- --       3,3,1.0
--- -- ***************************************************************************
+-- ***************************************************************************
+-- Generate features in svmlight format
+-- features is of the form (patientid, idx, normalizedfeaturevalue) and is the output of the previous step
+-- e.g.  1,1,1.0
+--  	 1,3,0.8
+--	     2,1,0.5
+--       3,3,1.0
+-- ***************************************************************************
 
--- grpd = GROUP features BY patientid;
--- grpd_order = ORDER grpd BY $0;
--- features = FOREACH grpd_order
--- {
---     sorted = ORDER features BY idx;
---     generate group as patientid, utils.bag_to_svmlight(sorted) as sparsefeature;
--- }
+grpd = GROUP features BY patientid;
+grpd_order = ORDER grpd BY $0;
+features = FOREACH grpd_order
+{
+    sorted = ORDER features BY idx;
+    generate group as patientid, utils.bag_to_svmlight(sorted) as sparsefeature;
+}
 
--- -- ***************************************************************************
--- -- Split into train and test set
--- -- labels is of the form (patientid, label) and contains all patientids followed by label of 1 for dead and 0 for alive
--- -- e.g. 1,1
--- --	2,0
--- --      3,1
--- -- ***************************************************************************
--- labels = GROUP filtered by patientid;
--- labels = FOREACH labels GENERATE group as patientid, MIN(filtered.label);
+-- ***************************************************************************
+-- Split into train and test set
+-- labels is of the form (patientid, label) and contains all patientids followed by label of 1 for dead and 0 for alive
+-- e.g. 1,1
+--	2,0
+--      3,1
+-- ***************************************************************************
+labels = GROUP filtered by patientid;
+labels = FOREACH labels GENERATE group as patientid, MIN(filtered.label);
 
--- --Generate sparsefeature vector relation
--- samples = JOIN features BY patientid, labels BY patientid;
--- samples = DISTINCT samples PARALLEL 1;
--- samples = ORDER samples BY $0;
--- samples = FOREACH samples GENERATE $3 AS label, $1 AS sparsefeature;
+--Generate sparsefeature vector relation
+samples = JOIN features BY patientid, labels BY patientid;
+samples = DISTINCT samples PARALLEL 1;
+samples = ORDER samples BY $0;
+samples = FOREACH samples GENERATE $3 AS label, $1 AS sparsefeature;
 
--- --TEST-6
--- STORE samples INTO 'samples' USING PigStorage(' ');
+--TEST-6
+STORE samples INTO 'samples' USING PigStorage(' ');
 
--- -- randomly split data for training and testing
--- DEFINE rand_gen RANDOM('6505');
--- samples = FOREACH samples GENERATE rand_gen() as assignmentkey, *;
--- SPLIT samples INTO testing IF assignmentkey <= 0.20, training OTHERWISE;
--- training = FOREACH training GENERATE $1..;
--- testing = FOREACH testing GENERATE $1..;
+-- randomly split data for training and testing
+DEFINE rand_gen RANDOM('6505');
+samples = FOREACH samples GENERATE rand_gen() as assignmentkey, *;
+SPLIT samples INTO testing IF assignmentkey <= 0.20, training OTHERWISE;
+training = FOREACH training GENERATE $1..;
+testing = FOREACH testing GENERATE $1..;
 
--- -- save training and tesing data
--- STORE testing INTO 'testing' USING PigStorage(' ');
--- STORE training INTO 'training' USING PigStorage(' ');
+-- save training and tesing data
+STORE testing INTO 'testing' USING PigStorage(' ');
+STORE training INTO 'training' USING PigStorage(' ');
