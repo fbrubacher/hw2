@@ -95,7 +95,7 @@ STORE featureswithid INTO 'features_aggregate' USING PigStorage(',');
 all_features = DISTINCT(FOREACH featureswithid GENERATE eventid);
 all_features = ORDER all_features BY eventid;
 all_features = RANK all_features BY eventid;
-all_features = FOREACH all_features GENERATE ($0 - $1) AS idx, $1;
+all_features = FOREACH all_features GENERATE ($0 - 1) AS idx, $1;
  -- compute the set of distinct eventids obtained from previous step, sort them by eventid and then rank these features by eventid to create (idx, eventid). Rank should start from 0.
 
 -- store the features as an output file
