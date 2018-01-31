@@ -56,8 +56,8 @@ STORE deadevents INTO 'deadevents' USING PigStorage(',');
 -- Filter events within the observation window and remove events with missing values
 -- ***************************************************************************
 combined = UNION aliveevents, deadevents; 
-filtered = FILTER filtered BY value IS NOT null;
-filtered = FILTER combined BY time_difference <= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
+filtered = FILTER combined BY value IS NOT null;
+filtered = FILTER filtered BY time_difference <= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
 filtered = FILTER combined BY time_difference >= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
 
 --TEST-2
