@@ -139,7 +139,7 @@ features = FOREACH grpd_order
 --      3,1
 -- ***************************************************************************
 labels = GROUP filtered by patientid;
-labels = FOREACH labels_group GENERATE group as patientid, MIN(filtered.label);
+labels = FOREACH labels GENERATE group as patientid, MIN(filtered.label);
 
 --Generate sparsefeature vector relation
 samples = JOIN features BY patientid, labels BY patientid;
