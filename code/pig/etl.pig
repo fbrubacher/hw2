@@ -90,21 +90,25 @@ all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, event
 -- store the features as an output file
 STORE all_features INTO 'features' using PigStorage(' ');
 
-features = -- perform join of featureswithid and all_features by eventid and replace eventid with idx. It is of the form (patientid, idx, featurevalue)
+features = JOIN featureswithid BY eventid, all_features BY eventid;
 
 --TEST-4
 features = ORDER features BY patientid, idx;
+features = FOREACH features GENERATE patientid, idx, featurevalue;
+features = ORDER features BY patientid, idx;
+
 STORE features INTO 'features_map' USING PigStorage(',');
 
 -- ***************************************************************************
 -- Normalize the values using min-max normalization
 -- Use DOUBLE precision
 -- ***************************************************************************
-maxvalues = -- group events by idx and compute the maximum feature value in each group. I t is of the form (idx, maxvalue)
+maxvalues = GROUP features BY idx;
+maxvalues = FOREACH maxvalues GENERATE group as idx, MAX(features.featurevalue) AS maxvalues;
 
-normalized = -- join features and maxvalues by idx
+normalized = JOIN features BY idx, maxvalues BY idx;
 
-features = -- compute the final set of normalized features of the form (patientid, idx, normalizedfeaturevalue)
+features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((DOUBLE)featurevalue/(DOUBLE)maxvalues) as normalizedfeaturevalue;
 
 --TEST-5
 features = ORDER features BY patientid, idx;
@@ -134,8 +138,8 @@ features = FOREACH grpd_order
 --	2,0
 --      3,1
 -- ***************************************************************************
-
-labels = -- create it of the form (patientid, label) for dead and alive patients
+labels = GROUP filtered by patientid;
+labels = FOREACH labels_group GENERATE group as patientid, MIN(filtered.label);
 
 --Generate sparsefeature vector relation
 samples = JOIN features BY patientid, labels BY patientid;
