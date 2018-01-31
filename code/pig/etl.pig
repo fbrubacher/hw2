@@ -77,7 +77,7 @@ STORE filtered INTO 'filtered' USING PigStorage(',');
 -- Aggregate events to create features
 -- ***************************************************************************
 featureswithid = GROUP filtered BY (patientid, eventid);
-featureswithid = FOREACH featureswithid GENERATE group.patientid as patientid, group.eventid as eventid, COUNT(filtered.value) as featurevalue;
+featureswithid = FOREACH featureswithid GENERATE FLATTEN(group), COUNT(filtered.value) as featurevalue;
 
 -- for group of (patientid, eventid), count the number of  events occurred for the patient and create relation of the form (patientid, eventid, featurevalue)
 
