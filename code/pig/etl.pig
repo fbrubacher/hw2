@@ -65,9 +65,7 @@ STORE deadevents INTO 'deadevents' USING PigStorage(',');
 -- filtered = FILTER combined BY time_difference >= 2000; -- contains only events for all patients within the observation window of 2000 days and is of the form (patientid, eventid, value, label, time_difference)
 
 filtered = UNION aliveevents, deadevents;
-filtered = FILTER filtered BY value IS NOT null;
-filtered = FILTER filtered BY time_difference <= 2000; 
-filtered = FILTER filtered BY time_difference >= 0;
+filtered = FILTER filtered BY (value IS NOT null) AND (time_difference <= 2000) AND (time_difference >= 0);
 
 --TEST-2
 filteredgrpd = GROUP filtered BY 1;
@@ -95,8 +93,9 @@ STORE featureswithid INTO 'features_aggregate' USING PigStorage(',');
 -- all_features = RANK all_features BY count ASC;
 -- all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, eventid;
 all_features = DISTINCT(FOREACH featureswithid GENERATE eventid);
-all_features = RANK all_features BY eventid ASC;
-all_features = FOREACH all_features GENERATE rank_all_features - 1 AS idx, eventid;
+all_features = RANK all_features BY eventid;
+all_features = FOREACH all_features GENERATE ($0 - $1) AS idx, $1;
+all_features = ORDER all_features BY eventid;
  -- compute the set of distinct eventids obtained from previous step, sort them by eventid and then rank these features by eventid to create (idx, eventid). Rank should start from 0.
 
 -- store the features as an output file
@@ -120,7 +119,7 @@ maxvalues = FOREACH maxvalues GENERATE group as idx, MAX(features.featurevalue) 
 
 normalized = JOIN features BY idx, maxvalues BY idx;
 
-features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((DOUBLE)featurevalue/(DOUBLE)maxvalues) as normalizedfeaturevalue;
+features = FOREACH normalized GENERATE patientid, features::all_features::idx as idx, ((double)featurevalue/(double)maxvalues) as normalizedfeaturevalue;
 
 --TEST-5
 features = ORDER features BY patientid, idx;
