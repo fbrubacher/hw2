@@ -40,13 +40,13 @@ deadevents = FOREACH eventswithmort GENERATE mortality::patientid, eventid, valu
 
 
 -- deadevents = -- detect the events of dead patients and create it of the form (patientid, eventid, value, label, time_difference) where time_difference is the days between index date and each event timestamp
-alive = JOIN events BY patientid LEFT, mortality by patientid;
+alive = JOIN events BY patientid LEFT OUTER, mortality by patientid;
 alive = FILTER alive BY mtimestamp is null;
 alive = FOREACH alive GENERATE events::patientid as patientid, events::eventid, events::value, 0 as label, etimestamp;
 alive_grouped = GROUP alive BY patientid;
 alive_by_pid = FOREACH alive_grouped GENERATE group as pid, MAX(alive.etimestamp) as maxtimestamp;
 alive = JOIN alive BY patientid, alive_by_pid BY pid;
-aliveevents = FOREACH alive GENERATE patientid, events::eventid, events::value, label, DaysBetween(etimestamp, maxtimestamp) as time_difference;
+aliveevents = FOREACH alive GENERATE patientid, events::eventid, events::value, label, DaysBetween(maxtimestamp, etimestamp) as time_difference;
 
 -- aliveevents = -- detect the events of alive patients and create it of the form (patientid, eventid, value, label, time_difference) where time_difference is the days between index date and each event timestamp
 
