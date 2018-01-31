@@ -34,8 +34,10 @@ mortality = FOREACH mortality GENERATE patientid, ToDate(timestamp, 'yyyy-MM-dd'
 -- Compute the index dates for dead and alive patients
 -- ***************************************************************************
 eventswithmort = JOIN events BY patientid, mortality BY patientid;
-eventsdead = FOREACH eventswithmort GENERATE events::patientid, eventid, value, label, etimestamp, AddDuration(mtimestamp, 'P-30D') as indexdate;
-deadevents = FOREACH eventsdead GENERATE patientid, eventid, value, label, DaysBetween(etimestamp, indexdate) as time_difference;
+-- -- eventsdead = FOREACH eventswithmort GENERATE events::patientid, eventid, value, label, etimestamp, AddDuration(mtimestamp, 'P-30D') as indexdate;
+-- deadevents = FOREACH eventsdead GENERATE patientid, eventid, value, label, DaysBetween(etimestamp, indexdate) as time_difference;
+deadevents = FOREACH eventswithmort GENERATE mortality::patientid, eventid, value, label, DaysBetween(SubtractDuration(mtimestamp, 'P30D'), etimestamp) as time_difference;
+
 
 -- deadevents = -- detect the events of dead patients and create it of the form (patientid, eventid, value, label, time_difference) where time_difference is the days between index date and each event timestamp
 alive = JOIN events BY patientid LEFT, mortality by patientid;
